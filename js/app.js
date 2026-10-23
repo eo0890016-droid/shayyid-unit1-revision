@@ -67,7 +67,27 @@
       ).join("") + "</dl>";
     }
     if (block.rings) return ringsHtml(block.rings);
+    if (block.timeline) return timelineHtml(block.timeline);
     return "";
+  }
+
+  function timelineHtml(timeline) {
+    const stages = (timeline.stages || []).map((stage, index) =>
+      "<li class=\"tl-stage\">" +
+        "<span class=\"tl-dot\" aria-hidden=\"true\">" + (index + 1) + "</span>" +
+        "<div class=\"tl-body\">" +
+          "<span class=\"tl-era\">" + rich(stage.era) + "</span>" +
+          "<h4 class=\"tl-tech\">" + rich(stage.tech) + "</h4>" +
+          (stage.purpose ? "<p class=\"tl-purpose\"><span>الغرض الأساسي:</span> " + rich(stage.purpose) + "</p>" : "") +
+        "</div>" +
+      "</li>"
+    ).join("");
+    return (
+      "<figure class=\"timeline\">" +
+        (timeline.caption ? "<figcaption>" + rich(timeline.caption) + "</figcaption>" : "") +
+        "<ol class=\"tl-list\">" + stages + "</ol>" +
+      "</figure>"
+    );
   }
 
   function ringsHtml(rings) {
@@ -101,6 +121,7 @@
       if (block.table) return block.table.headers.join(" ") + " " + block.table.rows.flat().join(" ");
       if (block.dl) return block.dl.map((row) => row.join(" ")).join(" ");
       if (block.rings) return (block.rings.caption || "") + " " + (block.rings.levels || []).map((level) => level.title + " " + (level.abbr || "") + " " + (level.text || "")).join(" ");
+      if (block.timeline) return (block.timeline.caption || "") + " " + (block.timeline.stages || []).map((stage) => stage.era + " " + stage.tech + " " + (stage.purpose || "")).join(" ");
       return "";
     }).join(" ");
   }

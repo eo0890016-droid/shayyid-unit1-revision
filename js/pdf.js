@@ -448,6 +448,93 @@
     }];
   }
 
+  function timelineAtoms(timeline, width) {
+    const atoms = [];
+    const stages = timeline.stages || [];
+    const dot = 16;
+    const gapX = 10;
+    const cardW = width - dot - gapX;
+    const padX = 8;
+    const textW = cardW - padX * 2;
+    atoms.push(answerPad(4));
+    if (timeline.caption) {
+      atoms.push({
+        h: 22,
+        draw: function (top) {
+          ctx.fillStyle = ANSWER_BG;
+          ctx.fillRect(px(MARGIN), px(top), px(INNER), px(22));
+          ctx.fillStyle = GREEN_2;
+          ctx.fillRect(px(RIGHT - 3), px(top), px(3), px(22));
+          setFont(800, 10.5);
+          ctx.fillStyle = GREEN;
+          ctx.textAlign = "center";
+          ctx.direction = "rtl";
+          ctx.fillText(plain(timeline.caption), px(RIGHT - 12 - width / 2), px(top + 12));
+          ctx.fillStyle = "#D1E7DD";
+          ctx.fillRect(px(RIGHT - 12 - width / 2 - 40), px(top + 18), px(80), px(1.5));
+        }
+      });
+    }
+    stages.forEach((stage, index) => {
+      const techLines = wrap(plain(stage.tech), textW, 9.5, 700);
+      const purposeLines = stage.purpose ? wrap("الغرض الأساسي: " + plain(stage.purpose), textW, 8.5, 400) : [];
+      const h = 8 + 14 + techLines.length * 14 + purposeLines.length * 12 + 8;
+      const last = index === stages.length - 1;
+      atoms.push({
+        h: h + 6,
+        draw: function (top) {
+          ctx.fillStyle = ANSWER_BG;
+          ctx.fillRect(px(MARGIN), px(top), px(INNER), px(h + 6));
+          ctx.fillStyle = GREEN_2;
+          ctx.fillRect(px(RIGHT - 3), px(top), px(3), px(h + 6));
+          const cx = RIGHT - 12 - dot / 2;
+          if (!last) {
+            ctx.fillStyle = "#BFDCCB";
+            ctx.fillRect(px(cx - 0.75), px(top + dot + 2), px(1.5), px(h + 6 - dot - 2));
+          }
+          ctx.beginPath();
+          ctx.arc(px(cx), px(top + 2 + dot / 2), px(dot / 2), 0, Math.PI * 2);
+          ctx.fillStyle = last ? GREEN : "#ffffff";
+          ctx.fill();
+          ctx.strokeStyle = GREEN_2;
+          ctx.lineWidth = Math.max(1, S * 0.8);
+          ctx.stroke();
+          setFont(800, 7.5);
+          ctx.fillStyle = last ? "#ffffff" : GREEN;
+          ctx.textAlign = "center";
+          ctx.direction = "ltr";
+          ctx.fillText(String(index + 1), px(cx), px(top + 2 + dot / 2 + 2.7));
+          const cardRight = RIGHT - 12 - dot - gapX;
+          roundRect(cardRight - cardW, top, cardW, h, 8, "#ffffff", LINE);
+          let y0 = top + 8;
+          setFont(800, 7.5);
+          ctx.direction = "rtl";
+          const era = plain(stage.era);
+          const eraW = widthOf(era) + 12;
+          roundRect(cardRight - padX - eraW, y0 - 1, eraW, 12, 6, "#E8F5E9");
+          ctx.fillStyle = GREEN_2;
+          ctx.textAlign = "center";
+          ctx.fillText(era, px(cardRight - padX - eraW / 2), px(y0 + 7.8));
+          y0 += 14;
+          setFont(700, 9.5);
+          ctx.fillStyle = GREEN;
+          ctx.textAlign = "right";
+          techLines.forEach((line, lineIndex) => {
+            ctx.fillText(line, px(cardRight - padX), px(y0 + 10 + lineIndex * 14));
+          });
+          y0 += techLines.length * 14;
+          setFont(400, 8.5);
+          ctx.fillStyle = INK;
+          purposeLines.forEach((line, lineIndex) => {
+            ctx.fillText(line, px(cardRight - padX), px(y0 + 9 + lineIndex * 12));
+          });
+        }
+      });
+    });
+    atoms.push(answerPad(4));
+    return atoms;
+  }
+
   function blocksToAtoms(blocks) {
     const width = INNER - 24;
     const atoms = [];
@@ -467,6 +554,7 @@
         block.dl.forEach((row) => bulletAtoms(plain(row[0]) + ": " + plain(row[1]), width).forEach((atom) => atoms.push(atom)));
       } else if (block.table) tableAtoms(block.table, width).forEach((atom) => atoms.push(atom));
       else if (block.rings) ringsAtoms(block.rings, width).forEach((atom) => atoms.push(atom));
+      else if (block.timeline) timelineAtoms(block.timeline, width).forEach((atom) => atoms.push(atom));
     });
     return atoms;
   }
